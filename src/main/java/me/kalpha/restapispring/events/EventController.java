@@ -42,14 +42,14 @@ public class EventController {
          * JSR 303 에러 검증
          */
         if (errors.hasErrors()) {
-            return ResponseEntity.badRequest().body(eventDto);
+            return ResponseEntity.badRequest().body(errors);
         }
         /**
          * 입력감 에러 검증 by EventValidator
          */
         eventValidator.validate(eventDto, errors);
         if (errors.hasErrors()) {
-            return ResponseEntity.badRequest().body(eventDto);
+            return ResponseEntity.badRequest().body(errors);
         }
 
         Event event = modelMapper.map(eventDto, Event.class);

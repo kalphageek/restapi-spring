@@ -1,4 +1,9 @@
 spring:
   jackson:
     deserialization:
-      .fail-on-unknown-properties: true
+      fail-on-unknown-properties: true
+  http:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
