@@ -16,16 +16,19 @@ import java.net.URI;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
+/**
+ * produces = MediaTypes.HAL_JSON_VALUE ==> 입력값이 HAL_JSON 이다.
+ */
 @RestController
 @RequestMapping(value = "/api/events", produces = MediaTypes.HAL_JSON_VALUE)
 public class EventController {
-    private final EventRepository eventRepository;
+    private final EventService eventService;
     private final ModelMapper modelMapper;
     private final EventValidator eventValidator;
 
     @Autowired
-    public EventController(EventRepository eventRepository, ModelMapper modelMapper, EventValidator eventValidator) {
-        this.eventRepository = eventRepository;
+    public EventController(EventService eventService, ModelMapper modelMapper, EventValidator eventValidator) {
+        this.eventService = eventService;
         this.eventValidator = eventValidator;
         this.modelMapper = modelMapper;
     }
@@ -45,7 +48,7 @@ public class EventController {
             return ResponseEntity.badRequest().body(errors);
         }
         /**
-         * 입력감 에러 검증 by EventValidator
+         * 입력값 에러 검증 by EventValidator
          */
         eventValidator.validate(eventDto, errors);
         if (errors.hasErrors()) {
@@ -53,7 +56,7 @@ public class EventController {
         }
 
         Event event = modelMapper.map(eventDto, Event.class);
-        Event newEvent = eventRepository.save(event);
+        Event newEvent = eventService.save(event);
         URI uri = linkTo(this.getClass()).slash(newEvent.getId()).toUri();
         return ResponseEntity.created(uri).body(event);
     }

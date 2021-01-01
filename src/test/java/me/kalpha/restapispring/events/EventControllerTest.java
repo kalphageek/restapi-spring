@@ -53,10 +53,10 @@ public class EventControllerTest {
                 .andExpect(status().isCreated())
                 .andExpect(header().exists(HttpHeaders.LOCATION))
                 .andExpect(header().string(HttpHeaders.CONTENT_TYPE, MediaTypes.HAL_JSON_VALUE))
-                .andExpect(jsonPath("id").value(Matchers.not(100)))
+                .andExpect(jsonPath("id").exists())
                 .andExpect(jsonPath("eventStatus").value(Event.EventStatus.DRAFT.name()))
-                .andExpect(jsonPath("offline").value(Matchers.not(true)))
-                .andExpect(jsonPath("free").value(Matchers.not(true)));
+                .andExpect(jsonPath("offline").value(true))
+                .andExpect(jsonPath("free").value(false));
 
     }
 
@@ -116,6 +116,12 @@ public class EventControllerTest {
     }
 
 
+    /**
+     * Errors Body의 JSON값 레코드가 2개이상 이다
+     * $[0].field ==> 그 중 첫번째 레코드의 field 항목을 나타낸다.
+     *
+     * @throws Exception
+     */
     @DisplayName("에러 : 잘못된 값 입력")
     @Test
     public void createEvent_badRequest_wrongInput() throws Exception {

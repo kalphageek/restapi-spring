@@ -11,8 +11,8 @@ import java.io.IOException;
 /**
  * Errors는 JSON으로 Serialize되지 않는다.
  * 그래서 Response되지 않는다.
- * ErrorsSerializer는 Errors가 SSON으로 Serialize될 수 있도록 해준다.
- * ObjectMapper가 ErrorsSerializer를 사용하도록 등록
+ * ErrorsSerializer는 Errors가 JSON으로 Serialize될 수 있도록 해준다.
+ * @JsonComponent : ObjectMapper가 ErrorsSerializer를 사용하도록 등록한다.
  */
 @JsonComponent
 public class ErrorsSerializer extends JsonSerializer<Errors> {

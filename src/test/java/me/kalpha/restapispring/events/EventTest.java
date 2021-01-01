@@ -29,4 +29,53 @@ class EventTest {
         //Then
         assertEquals(event.getName(), name);
     }
+
+    @Test
+    public void testOffline() {
+        //Given
+        Event event = Event.builder()
+                .location("강남역")
+                .build();
+        //When
+        event.update();
+        //Then
+        assertEquals(event.isOffline(), true);
+
+        //Given
+        event = Event.builder()
+                .build();
+        //When
+        event.update();
+        //Then
+        assertEquals(event.isOffline(), false);
+    }
+
+    @Test
+    public void testFree() {
+        //Given
+        Event event = Event.builder()
+                .basePrice(100)
+                .build();
+        //When
+        event.update();
+        //Then
+        assertEquals(event.isFree(), false);
+
+        //Given
+        event = Event.builder()
+                .maxPrice(100)
+                .build();
+        //When
+        event.update();
+        //Then
+        assertEquals(event.isFree(), false);
+
+        //Given
+        event = Event.builder()
+                .build();
+        //When
+        event.update();
+        //Then
+        assertEquals(event.isFree(), true);
+    }
 }
