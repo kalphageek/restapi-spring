@@ -2,6 +2,7 @@ package me.kalpha.restapispring.events;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hamcrest.Matchers;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -28,6 +29,7 @@ public class EventControllerTest {
     @Autowired
     ObjectMapper objectMapper;
 
+    @DisplayName("정상 : Event생성")
     @Test
     public void createEvent() throws Exception {
         EventDto eventDto = EventDto.builder()
@@ -59,8 +61,7 @@ public class EventControllerTest {
     }
 
     /**
-     * 값이 없는데도 불구하고 Status 201이 리턴됨 -> 이를 Validation하기 위해 JSR303 Annotation을 이용해 Validation한다.
-     * andExpect(status().isBadRequest()) --> "Controller에서 Dto를 받는데, Dto가 받을 수 없는 값이 있으면 에러를 발생시켜라"
+     * andExpect(status().isBadRequest()) --> "Controller에서 Dto를 받는데, Dto가 받을 수 없는 속성이 있으면 에러를 발생시켜라"
      * application.yml에 아래가 설정되어 있으면 체크가 가능해진다.
      *      spring:
      *        jackson:
@@ -68,6 +69,40 @@ public class EventControllerTest {
      *            fail-on-unknown-properties: true
      * @throws Exception
      */
+    @DisplayName("에러 : 잘못된 속성을 가지는 요청")
+    @Test
+    public void createEvent_badRequest() throws Exception {
+        Event event = Event.builder()
+                .id(100) //자동설정값
+                .name("Spring")
+                .description("Rest API 개발 Test")
+                .beginEnrollmentDateTime(LocalDateTime.of(2020, 12, 29, 19,10))
+                .closeEnrollmentDateTime(LocalDateTime.of(2020, 12, 29, 19,10))
+                .beginEventDateTime(LocalDateTime.of(2020, 12, 29, 19,10))
+                .endEventDateTime(LocalDateTime.of(2020, 12, 30, 19,10))
+                .basePrice(100)
+                .maxPrice(200)
+                .limitOfEnrollment(100)
+                .location("강남역")
+                .free(true) //계산값
+                .offline(false) //계산값
+                .eventStatus(Event.EventStatus.PUBLISHED) //자동설정값
+                .build();
+
+        mockMvc.perform(post("/api/events")
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaTypes.HAL_JSON)
+                .content(objectMapper.writeValueAsString(event)))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
+
+    }
+
+    /**
+     * 값이 없는데도 불구하고 Status 201이 리턴됨 -> 이를 Validation하기 위해 JSR 303 Annotation을 이용해 Validation한다.
+    * @throws Exception
+     */
+    @DisplayName("에러 : 입력값이 비어있는 경우")
     @Test
     public void createEvent_badRequest_emptyInput() throws Exception {
         EventDto eventDto = EventDto.builder().build();
@@ -81,6 +116,7 @@ public class EventControllerTest {
     }
 
 
+    @DisplayName("에러 : 잘못된 값 입력")
     @Test
     public void createEvent_badRequest_wrongInput() throws Exception {
         EventDto eventDto = EventDto.builder()
