@@ -22,7 +22,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
  * produces = MediaTypes.HAL_JSON_VALUE ==> 입력값이 HAL_JSON 이다.
  */
 @RestController
-@RequestMapping(value = "/api/events", produces = MediaTypes.HAL_JSON_VALUE)
+@RequestMapping(value = "/api/events", produces = "application/hal+json; charset=UTF-8")
 public class EventController {
     private final EventService eventService;
     private final EventValidator eventValidator;
