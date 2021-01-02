@@ -3,6 +3,7 @@ package me.kalpha.restapispring.events;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.Link;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.ResponseEntity;
@@ -20,9 +21,11 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 /**
  * produces = MediaTypes.HAL_JSON_VALUE ==> 입력값이 HAL_JSON 이다.
+ * Test에서 한글이 깨져서 produces를 임시로 변경 하였다.
  */
 @RestController
-@RequestMapping(value = "/api/events", produces = "application/hal+json; charset=UTF-8")
+//@RequestMapping(value = "/api/events", produces = "application/hal+json; charset=UTF-8")
+@RequestMapping(value = "/api/events", produces = MediaTypes.HAL_JSON_VALUE)
 public class EventController {
     private final EventService eventService;
     private final EventValidator eventValidator;
@@ -42,7 +45,7 @@ public class EventController {
     @PostMapping
     public ResponseEntity createEvent(@RequestBody @Valid EventDto eventDto, Errors errors) {
         /**
-         * JSR 303 에러 검증
+         * JSR 303 에러 검증 (@NotNULL, @NotEmpty, @Min, @Max, 등 )
          */
         if (errors.hasErrors()) {
             return ResponseEntity.badRequest().body(errors);
@@ -67,7 +70,8 @@ public class EventController {
         EntityModel<Event> eventModel = EntityModel.of(event)
                 .add(selfLinkBuilder.withSelfRel())
                 .add(selfLinkBuilder.withRel("update-event"))
-                .add(linkTo(this.getClass()).withRel("query-events"));
+                .add(linkTo(this.getClass()).withRel("query-events"))
+                .add(new Link("/docs/index.html#resources-events-create").withRel("profile"));
 
         return ResponseEntity.created(selfLinkBuilder.toUri()).body(eventModel);
     }

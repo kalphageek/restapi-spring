@@ -73,16 +73,18 @@ public class EventControllerTest {
                 .andExpect(jsonPath("eventStatus").value(Event.EventStatus.DRAFT.name()))
                 .andExpect(jsonPath("offline").value(true))
                 .andExpect(jsonPath("free").value(false))
-                .andExpect(jsonPath("_links.self").exists())
-                .andExpect(jsonPath("_links.query-events").exists())
-                .andExpect(jsonPath("_links.update-event").exists())
+// .andDo에서 Test하기 때문에 제외
+//                .andExpect(jsonPath("_links.self").exists())
+//                .andExpect(jsonPath("_links.query-events").exists())
+//                .andExpect(jsonPath("_links.update-event").exists())
                 //Rest Docs Snippet에 Link관련 문서조각 추가 생성
                 .andDo(document("create-event",
                         //links.adoc 생성
                         links(
-                                linkWithRel("self").description("link to self"),
-                                linkWithRel("query-events").description("link to query events"),
-                                linkWithRel("update-event").description("link to update a event")
+                                linkWithRel("self").description("link to self api"),
+                                linkWithRel("query-events").description("link to query events api"),
+                                linkWithRel("update-event").description("link to update a event api"),
+                                linkWithRel("profile").description("link to profile")
                         ),
                         //request-headers.adoc 생성
                         requestHeaders(
@@ -124,9 +126,10 @@ public class EventControllerTest {
                                 fieldWithPath("free").description("무료 여부"),
                                 fieldWithPath("offline").description("Online/Offline 여부"),
                                 fieldWithPath("eventStatus").description("Event 상태"),
-                                fieldWithPath("_links.self.href").description("link to self"),
-                                fieldWithPath("_links.query-events.href").description("link to query events"),
-                                fieldWithPath("_links.update-event.href").description("link to update a event")
+                                fieldWithPath("_links.self.href").description("link to self api"),
+                                fieldWithPath("_links.query-events.href").description("link to query events api"),
+                                fieldWithPath("_links.update-event.href").description("link to update a event api"),
+                                fieldWithPath("_links.profile.href").description("link to profile")
                         )
                 ))
         ;
