@@ -17,9 +17,11 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
 
+import static org.springframework.restdocs.headers.HeaderDocumentation.*;
 import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.linkWithRel;
 import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.links;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
+import static org.springframework.restdocs.payload.PayloadDocumentation.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -68,12 +70,57 @@ public class EventControllerTest {
                 .andExpect(jsonPath("_links.self").exists())
                 .andExpect(jsonPath("_links.query-events").exists())
                 .andExpect(jsonPath("_links.update-event").exists())
-                //Rest Docs Snippet에 Link관련 문서조각 추가 생성
+                //Rest Docs Snippet에 Link관련 문서조각 추가 생성 => links.adoc 생성
                 .andDo(document("create-event",
+                        //links.adoc 생성
                         links(
                                 linkWithRel("self").description("link to self"),
                                 linkWithRel("query-events").description("link to query events"),
                                 linkWithRel("update-event").description("link to update a event")
+                        ),
+                        //request-headers.adoc 생성
+                        requestHeaders(
+                                headerWithName(HttpHeaders.ACCEPT).description("Accept Header"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("Content Type")
+                        ),
+                        //request-fields.adoc 생성
+                        requestFields(
+                                fieldWithPath("name").description("새 Event명"),
+                                fieldWithPath("description").description("새 Event설명"),
+                                fieldWithPath("beginEnrollmentDateTime").description("등록 시작일시"),
+                                fieldWithPath("closeEnrollmentDateTime").description("등록 마감일시"),
+                                fieldWithPath("beginEventDateTime").description("Event 시작일시"),
+                                fieldWithPath("endEventDateTime").description("Event 종료일시"),
+                                fieldWithPath("location").description("새 Event 장소"),
+                                fieldWithPath("basePrice").description("새 Event 초기금액"),
+                                fieldWithPath("maxPrice").description("새 Event 최대금액"),
+                                fieldWithPath("limitOfEnrollment").description("등록 최대금액")
+                        ),
+                        //response-headers.adoc 생성
+                        responseHeaders(
+                                headerWithName(HttpHeaders.LOCATION).description("Response Location"),
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("Content Type")
+                        ),
+                        //response-fields.adoc 생성, 에러무시
+//                        relaxedResponseFields(
+                        responseFields(
+                                fieldWithPath("id").description("새 Event Id"),
+                                fieldWithPath("name").description("새 Event명"),
+                                fieldWithPath("description").description("새 Event설명"),
+                                fieldWithPath("beginEnrollmentDateTime").description("등록 시작일시"),
+                                fieldWithPath("closeEnrollmentDateTime").description("등록 마감일시"),
+                                fieldWithPath("beginEventDateTime").description("Event 시작일시"),
+                                fieldWithPath("endEventDateTime").description("Event 종료일시"),
+                                fieldWithPath("location").description("새 Event 장소"),
+                                fieldWithPath("basePrice").description("새 Event 초기금액"),
+                                fieldWithPath("maxPrice").description("새 Event 최대금액"),
+                                fieldWithPath("limitOfEnrollment").description("등록 최대금액"),
+                                fieldWithPath("free").description("무료 여부"),
+                                fieldWithPath("offline").description("Online/Offline 여부"),
+                                fieldWithPath("eventStatus").description("Event 상태"),
+                                fieldWithPath("_links.self.href").description("link to self"),
+                                fieldWithPath("_links.query-events.href").description("link to query events"),
+                                fieldWithPath("_links.update-event.href").description("link to update a event")
                         )
                 ))
         ;
