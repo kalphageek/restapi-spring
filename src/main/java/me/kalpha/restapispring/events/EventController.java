@@ -2,7 +2,9 @@ package me.kalpha.restapispring.events;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.MediaTypes;
+import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -23,14 +25,12 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 @RequestMapping(value = "/api/events", produces = MediaTypes.HAL_JSON_VALUE)
 public class EventController {
     private final EventService eventService;
-    private final ModelMapper modelMapper;
     private final EventValidator eventValidator;
 
     @Autowired
-    public EventController(EventService eventService, ModelMapper modelMapper, EventValidator eventValidator) {
+    public EventController(EventService eventService, EventValidator eventValidator) {
         this.eventService = eventService;
         this.eventValidator = eventValidator;
-        this.modelMapper = modelMapper;
     }
 
     /**
@@ -55,9 +55,20 @@ public class EventController {
             return ResponseEntity.badRequest().body(errors);
         }
 
-        Event event = modelMapper.map(eventDto, Event.class);
-        Event newEvent = eventService.save(event);
-        URI uri = linkTo(this.getClass()).slash(newEvent.getId()).toUri();
-        return ResponseEntity.created(uri).body(event);
+        /**
+         * eventDto 저장
+         */
+        Event event = eventService.save(eventDto);
+
+        /**
+         * Spring Hateoas 적용
+         */
+        WebMvcLinkBuilder selfLinkBuilder = linkTo(this.getClass()).slash(event.getId());
+        EntityModel<Event> eventModel = EntityModel.of(event)
+                .add(selfLinkBuilder.withSelfRel())
+                .add(selfLinkBuilder.withRel("update-event"))
+                .add(linkTo(this.getClass()).withRel("query-events"));
+
+        return ResponseEntity.created(selfLinkBuilder.toUri()).body(eventModel);
     }
 }
