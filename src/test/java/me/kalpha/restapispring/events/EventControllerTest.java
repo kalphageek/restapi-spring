@@ -39,7 +39,7 @@ public class EventControllerTest {
     @Autowired
     ObjectMapper objectMapper;
 
-    @DisplayName("정상 : Event생성")
+    @DisplayName("정상 : Event 생성")
     @Test
     public void createEvent() throws Exception {
         EventDto eventDto = EventDto.builder()
@@ -70,7 +70,7 @@ public class EventControllerTest {
                 .andExpect(jsonPath("_links.self").exists())
                 .andExpect(jsonPath("_links.query-events").exists())
                 .andExpect(jsonPath("_links.update-event").exists())
-                //Rest Docs Snippet에 Link관련 문서조각 추가 생성 => links.adoc 생성
+                //Rest Docs Snippet에 Link관련 문서조각 추가 생성
                 .andDo(document("create-event",
                         //links.adoc 생성
                         links(
