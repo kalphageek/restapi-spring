@@ -1,12 +1,16 @@
 package me.kalpha.restapispring.events;
 
+import me.kalpha.restapispring.common.ErrorsModel;
+import me.kalpha.restapispring.index.IndexController;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
 import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -48,14 +52,14 @@ public class EventController {
          * JSR 303 에러 검증 (@NotNULL, @NotEmpty, @Min, @Max, 등 )
          */
         if (errors.hasErrors()) {
-            return ResponseEntity.badRequest().body(errors);
+            return badRequest(errors);
         }
         /**
          * 입력값 에러 검증 by EventValidator
          */
         eventValidator.validate(eventDto, errors);
         if (errors.hasErrors()) {
-            return ResponseEntity.badRequest().body(errors);
+            return badRequest(errors);
         }
 
         /**
@@ -72,7 +76,13 @@ public class EventController {
                 .add(selfLinkBuilder.withRel("update-event"))
                 .add(linkTo(this.getClass()).withRel("query-events"))
                 .add(new Link("/docs/index.html#resources-events-create").withRel("profile"));
-
         return ResponseEntity.created(selfLinkBuilder.toUri()).body(eventModel);
+    }
+
+    private ResponseEntity<EntityModel> badRequest(Errors errors) {
+        EntityModel<Errors> errorsModel = EntityModel.of(errors)
+                .add(linkTo(methodOn(IndexController.class).index()).withRel("index"));
+        return ResponseEntity.badRequest().body(errorsModel);
+//        return ResponseEntity.badRequest().body(new ErrorsModel(errors));
     }
 }
