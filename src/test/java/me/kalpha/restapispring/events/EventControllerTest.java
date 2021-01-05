@@ -20,12 +20,14 @@ import org.springframework.web.context.WebApplicationContext;
 
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
+import java.util.stream.IntStream;
 
 import static org.springframework.restdocs.headers.HeaderDocumentation.*;
 import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.linkWithRel;
 import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.links;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.payload.PayloadDocumentation.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -46,6 +48,8 @@ public class EventControllerTest {
     ObjectMapper objectMapper;
     @Autowired
     WebApplicationContext wac;
+    @Autowired
+    EventRepository eventRepository;
 
     @DisplayName("정상 : Event 생성")
     @Test
@@ -226,5 +230,31 @@ public class EventControllerTest {
                 .andExpect(jsonPath("errors[0].code").exists())
                 .andExpect(jsonPath("_links.index").exists())
         ;
+    }
+
+    @DisplayName("정상 : 3개씩 2번째 페이지, 총 8개")
+    @Test
+    public void queryEvents() throws Exception {
+        IntStream.range(0,8).forEach(this::generateEvent);
+
+        mockMvc.perform(get("/api/events")
+                    .param("page", "1")
+                    .param("size", "3")
+                    .param("sort", "name,DESC"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("page").exists())
+                .andExpect(jsonPath("_embedded.eventList[0]._links.self").exists())
+                .andExpect(jsonPath("._links.profile").exists())
+                .andDo(document("query-events"))
+        ;
+    }
+
+    private void generateEvent(int i) {
+        Event event = Event.builder()
+                .name("event " + i)
+                .description("test event")
+                .build();
+        eventRepository.save(event);
     }
 }

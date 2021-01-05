@@ -1,17 +1,18 @@
 package me.kalpha.restapispring.events;
 
+import me.kalpha.restapispring.common.ErrorsModel;
 import me.kalpha.restapispring.index.IndexController;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.Errors;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 
@@ -47,36 +48,33 @@ public class EventController {
          * JSR 303 에러 검증 (@NotNULL, @NotEmpty, @Min, @Max, 등 )
          */
         if (errors.hasErrors()) {
-            return badRequest(errors);
+            return ResponseEntity.badRequest().body(ErrorsModel.modelOf(errors));
         }
         /**
          * 입력값 에러 검증 by EventValidator
          */
         eventValidator.validate(eventDto, errors);
         if (errors.hasErrors()) {
-            return badRequest(errors);
+            return ResponseEntity.badRequest().body(ErrorsModel.modelOf(errors));
         }
 
-        /**
-         * eventDto 저장
-         */
         Event event = eventService.save(eventDto);
-
         /**
          * Spring Hateoas 적용
          */
         WebMvcLinkBuilder selfLinkBuilder = linkTo(this.getClass()).slash(event.getId());
-        EntityModel<Event> eventModel = EntityModel.of(event)
-                .add(selfLinkBuilder.withSelfRel())
-                .add(selfLinkBuilder.withRel("update-event"))
+        EntityModel<Event> eventModel = EventModel.modelOf(event);
+        eventModel.add(selfLinkBuilder.withRel("update-event"))
                 .add(linkTo(this.getClass()).withRel("query-events"))
                 .add(Link.of("/docs/index.html#resources-events-create").withRel("profile"));
         return ResponseEntity.created(selfLinkBuilder.toUri()).body(eventModel);
     }
 
-    private ResponseEntity<EntityModel> badRequest(Errors errors) {
-        EntityModel<Errors> errorsModel = EntityModel.of(errors)
-                .add(linkTo(methodOn(IndexController.class).index()).withRel("index"));
-        return ResponseEntity.badRequest().body(errorsModel);
+    @GetMapping
+    public ResponseEntity queryEvents(Pageable pageable, PagedResourcesAssembler assembler) {
+        Page<Event> page = eventService.findAll(pageable);
+        var pagedResource = assembler.toModel(page, e -> EventModel.modelOf((Event) e));
+        pagedResource.add(Link.of("/docs/index.html#resources-events-list").withRel("profile"));
+        return ResponseEntity.ok().body(pagedResource);
     }
 }
