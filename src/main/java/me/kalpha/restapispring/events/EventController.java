@@ -94,4 +94,26 @@ public class EventController {
         eventModel.add(Link.of("/docs/index.html#resources-events-get").withRel("profile"));
         return ResponseEntity.ok(eventModel);
     }
+
+    @PutMapping("/{id}")
+    public ResponseEntity updateEvent(@PathVariable Integer id,
+                                      @RequestBody @Valid EventDto eventDto,
+                                      Errors errors) {
+        Optional<Event> eventOptional = eventService.getEvent(id);
+        if (eventOptional.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        if (errors.hasErrors()) {
+            return ResponseEntity.badRequest().body(ErrorsModel.modelOf(errors));
+        }
+        eventValidator.validate(eventDto, errors);
+        if (errors.hasErrors()) {
+            return ResponseEntity.badRequest().body(ErrorsModel.modelOf(errors));
+        }
+        Event existEvent = eventOptional.get();
+        Event event = eventService.save(eventDto, existEvent);
+        EntityModel<Event> eventModel = EventModel.modelOf(event);
+        eventModel.add(Link.of("/docs/index.html#resources-events-update").withRel("profile"));
+        return ResponseEntity.ok(eventModel);
+    }
 }

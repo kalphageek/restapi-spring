@@ -15,6 +15,12 @@ public class EventService {
     @Autowired
     EventRepository eventRepository;
 
+    public Event save(EventDto eventDto, Event event) {
+        modelMapper.map(eventDto, event);
+        event.update();
+        return eventRepository.save(event);
+    }
+
     public Event save(EventDto eventDto) {
         Event event = modelMapper.map(eventDto, Event.class);
         event.update();
