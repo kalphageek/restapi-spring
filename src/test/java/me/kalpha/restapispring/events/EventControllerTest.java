@@ -245,16 +245,40 @@ public class EventControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("page").exists())
                 .andExpect(jsonPath("_embedded.eventList[0]._links.self").exists())
-                .andExpect(jsonPath("._links.profile").exists())
+                .andExpect(jsonPath("_links.profile").exists())
                 .andDo(document("query-events"))
         ;
     }
 
-    private void generateEvent(int i) {
+    @DisplayName("정상 : 기존의 Event 조회")
+    @Test
+    public void getEvent() throws Exception {
+        Event event = generateEvent(100);
+
+        mockMvc.perform(get("/api/events/{id}", event.getId()))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("id").exists())
+                .andExpect(jsonPath("name").exists())
+                .andExpect(jsonPath("_links.self").exists())
+                .andExpect(jsonPath("_links.profile").exists())
+                .andDo(document("get-an-event"))
+        ;
+    }
+
+    @DisplayName("에러 : 없는 Event 조회")
+    @Test
+    public void getEvent_wrongId() throws Exception {
+        mockMvc.perform(get("/api/events/{id}", 1001))
+                .andExpect(status().isNotFound())
+        ;
+    }
+
+    private Event generateEvent(int i) {
         Event event = Event.builder()
                 .name("event " + i)
                 .description("test event")
                 .build();
-        eventRepository.save(event);
+        return eventRepository.save(event);
     }
 }

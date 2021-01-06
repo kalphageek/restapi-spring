@@ -1,7 +1,6 @@
 package me.kalpha.restapispring.events;
 
 import me.kalpha.restapispring.common.ErrorsModel;
-import me.kalpha.restapispring.index.IndexController;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -9,15 +8,16 @@ import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.MediaTypes;
+import org.springframework.hateoas.PagedModel;
 import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.Optional;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 /**
  * produces = MediaTypes.HAL_JSON_VALUE ==> 입력값이 HAL_JSON 이다.
@@ -70,11 +70,28 @@ public class EventController {
         return ResponseEntity.created(selfLinkBuilder.toUri()).body(eventModel);
     }
 
+    /**
+     *
+     * @param pageable
+     * @param assembler 를 통해 EventModel을 설정
+     * @return
+     */
     @GetMapping
     public ResponseEntity queryEvents(Pageable pageable, PagedResourcesAssembler assembler) {
         Page<Event> page = eventService.findAll(pageable);
-        var pagedResource = assembler.toModel(page, e -> EventModel.modelOf((Event) e));
+        PagedModel pagedResource = assembler.toModel(page, e -> EventModel.modelOf((Event) e));
         pagedResource.add(Link.of("/docs/index.html#resources-events-list").withRel("profile"));
-        return ResponseEntity.ok().body(pagedResource);
+        return ResponseEntity.ok(pagedResource);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity getEvent(@PathVariable Integer id) {
+        Optional<Event> eventOptional = eventService.getEvent(id);
+        if (eventOptional.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        EntityModel<Event> eventModel = EventModel.modelOf(eventOptional.get());
+        eventModel.add(Link.of("/docs/index.html#resources-events-get").withRel("profile"));
+        return ResponseEntity.ok(eventModel);
     }
 }
