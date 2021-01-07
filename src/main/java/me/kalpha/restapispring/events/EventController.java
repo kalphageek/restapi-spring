@@ -79,6 +79,10 @@ public class EventController {
     @GetMapping
     public ResponseEntity queryEvents(Pageable pageable, PagedResourcesAssembler assembler) {
         Page<Event> page = eventService.findAll(pageable);
+
+        /**
+         * Spring Hateoas 적용
+         */
         PagedModel pagedResource = assembler.toModel(page, e -> EventModel.modelOf((Event) e));
         pagedResource.add(Link.of("/docs/index.html#resources-events-list").withRel("profile"));
         return ResponseEntity.ok(pagedResource);
@@ -90,8 +94,15 @@ public class EventController {
         if (eventOptional.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
-        EntityModel<Event> eventModel = EventModel.modelOf(eventOptional.get());
-        eventModel.add(Link.of("/docs/index.html#resources-events-get").withRel("profile"));
+        Event existEvent = eventOptional.get();
+
+        /**
+         * Spring Hateoas 적용
+         */
+        EntityModel<Event> eventModel = EventModel.modelOf(existEvent);
+        eventModel.add(linkTo(this.getClass()).slash(existEvent.getId()).withRel("update-event"))
+                .add(linkTo(this.getClass()).slash(existEvent.getId()).withRel("delete-event"))
+                .add(Link.of("/docs/index.html#resources-events-get").withRel("profile"));
         return ResponseEntity.ok(eventModel);
     }
 
@@ -112,8 +123,34 @@ public class EventController {
         }
         Event existEvent = eventOptional.get();
         Event event = eventService.save(eventDto, existEvent);
+
+        /**
+         * Spring Hateoas 적용
+         */
         EntityModel<Event> eventModel = EventModel.modelOf(event);
-        eventModel.add(Link.of("/docs/index.html#resources-events-update").withRel("profile"));
+        eventModel.add(linkTo(this.getClass()).slash(event.getId()).withRel("delete-event"))
+                .add(Link.of("/docs/index.html#resources-events-update").withRel("profile"))
+        ;
+        return ResponseEntity.ok(eventModel);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity deleteEntity(@PathVariable Integer id) {
+        Optional<Event> eventOptional = eventService.getEvent(id);
+        if (eventOptional.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        Event deletedEvent = eventOptional.get();
+        eventService.deleteEvent(id);
+
+        /**
+         * Spring Hateoas 적용
+         */
+        EntityModel<Event> eventModel = EventModel.modelOf(deletedEvent);
+        eventModel.add(linkTo(this.getClass()).withRel("create-event"))
+                .add(linkTo(this.getClass()).withRel("query-events"))
+                .add(Link.of("/docs/index.html#resources-events-delete").withRel("profile"))
+        ;
         return ResponseEntity.ok(eventModel);
     }
 }

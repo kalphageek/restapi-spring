@@ -61,17 +61,13 @@ public class EventControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("eventStatus").value(Event.EventStatus.DRAFT.name()))
                 .andExpect(jsonPath("offline").value(true))
                 .andExpect(jsonPath("free").value(false))
-// .andDo에서 Test하기 때문에 제외
-//                .andExpect(jsonPath("_links.self").exists())
-//                .andExpect(jsonPath("_links.query-events").exists())
-//                .andExpect(jsonPath("_links.update-event").exists())
                 //Rest Docs Snippet에 Link관련 문서조각 추가 생성
                 .andDo(document("create-event",
                         //links.adoc 생성
                         links(
                                 linkWithRel("self").description("link to self api"),
-                                linkWithRel("query-events").description("link to query events api"),
                                 linkWithRel("update-event").description("link to update a event api"),
+                                linkWithRel("query-events").description("link to query events api"),
                                 linkWithRel("profile").description("link to profile")
                         ),
                         //request-headers.adoc 생성
@@ -324,6 +320,16 @@ public class EventControllerTest extends BaseControllerTest {
         ;
     }
 
+    @DisplayName("정상 : Event 삭제")
+    @Test
+    public void deleteEvent() throws Exception {
+        Event event = generateEvent(400);
+        mockMvc.perform(delete("/api/events/{id}", event.getId()))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andDo(document("delete-event"))
+        ;
+    }
 
     private Event generateEvent(int i) {
         Event event = Event.builder()
